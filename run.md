@@ -116,6 +116,7 @@ Showing top 10 nodes out of 45
 
 ## try with tensorboard
 *Note*: need to add one line to `with torch.profiler.profile`
+REF: [link](https://github.com/pytorch/pytorch/issues/100253)
 ```
 experimental_config=torch._C._profiler._ExperimentalConfig(verbose=True)
 ```
