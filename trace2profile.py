@@ -34,6 +34,19 @@ def convert_trace_to_pprof(trace_data: Dict) -> profile_pb2.Profile:
     sample_type.type = get_string_index("cpu")
     sample_type.unit = get_string_index("nanoseconds")
     
+    # Create a mapping for functions
+    function_map = {}
+    
+    def get_function(name: str, filename: str) -> int:
+        key = (name, filename)
+        if key not in function_map:
+            function = profile.function.add()
+            function.id = len(profile.function)
+            function.name = get_string_index(name)
+            function.filename = get_string_index(filename)
+            function_map[key] = function.id
+        return function_map[key]
+    
     # Process trace events
     for event in trace_data.get("traceEvents", []):
         if "dur" not in event:  # Skip events without duration
@@ -45,22 +58,35 @@ def convert_trace_to_pprof(trace_data: Dict) -> profile_pb2.Profile:
         duration_ns = int(event["dur"] * 1000)
         sample.value.append(duration_ns)
         
-        # Create location for this event
-        location = profile.location.add()
-        location.id = len(profile.location)
+        # Get stack trace from the event
+        stack = []
+        if "args" in event and "stack" in event["args"]:
+            stack = event["args"]["stack"]
+        elif "stack" in event:
+            stack = event["stack"]
         
-        # Add function name
-        function = profile.function.add()
-        function.id = len(profile.function)
-        function.name = get_string_index(event.get("name", "unknown"))
-        function.filename = get_string_index(event.get("cat", "unknown"))
+        if not stack:
+            # If no stack trace, use the event name and category
+            stack = [{"name": event.get("name", "unknown"), "cat": event.get("cat", "unknown")}]
         
-        # Link location to function
-        line = location.line.add()
-        line.function_id = function.id
-        
-        # Add location to sample
-        sample.location_id.append(location.id)
+        # Create locations for each frame in the stack
+        for frame in reversed(stack):  # Reverse to get caller -> callee order
+            location = profile.location.add()
+            location.id = len(profile.location)
+            
+            # Get function name and filename from the frame
+            name = frame.get("name", "unknown")
+            filename = frame.get("cat", "unknown")
+            
+            # Add function information
+            function_id = get_function(name, filename)
+            
+            # Link location to function
+            line = location.line.add()
+            line.function_id = function_id
+            
+            # Add location to sample
+            sample.location_id.append(location.id)
     
     return profile
 

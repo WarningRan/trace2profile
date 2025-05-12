@@ -1,20 +1,26 @@
-conda create -n trace2profile python=3.10 cmake
+```conda create -n trace2profile python=3.10 cmake
 python3.9 -m pip install --upgrade pip
 conda activate trace2profile
 protoc --python_out=. profile.proto
 python3 -m pip install --upgrade protobuf
-pip install -r requirements.txt
-curl -O https://raw.githubusercontent.com/google/pprof/master/proto/profile.proto
-python trace2profile.py css-host-183_3244036.1745803131531804330.pt.trace.json css-host-183_3244036.1745803131531804330.pt.trace.pb
+pip install -r requirements.txt```
 
+to download profile.proto 
+`curl -O https://raw.githubusercontent.com/google/pprof/master/proto/profile.proto`
+to generate profile_pb2
+`protoc --python_out=. profile.proto`
+To convert trace 2 pprof
+`python3 trace2profile.py css-host-183_3244036.1745803131531804330.pt.trace.json css-host-183_3244036.1745803131531804330.pt.trace.pb
+`
 
-which pprof
+```which pprof
 brew install pprof
 brew install --cask approf
 
 brew install go
 go install github.com/google/pprof@latest
 ~/go/bin/pprof -top css-host-183_3244036.1745803131531804330.pt.trace.pb
+```
 
 ```
 Main binary filename not available.
@@ -67,5 +73,37 @@ Dropped 1389 nodes (cum <= 0.07s)
      0.07s  0.52% 91.22%      0.07s  0.52%  /net/storage149/mnt/md0/zhuoran/fmwork-v22/fmwork-v2.2-0306/vllm/vllm/model_executor/models/granite.py(292): forward
      0.07s  0.51% 91.74%      0.07s  0.51%  sm90_xmma_gemm_bf16bf16_bf16f32_f32_tn_n_tilesize64x64x64_warpgroupsize1x1x1_execute_segment_k_off_kernel__5x_cublas
      0.07s  0.51% 92.25%      0.07s  0.51%  /net/storage149/mnt/md0/zhuoran/fmwork-v22/fmwork-v2.2-0306/vllm/vllm/model_executor/models/granite.py(230): forward
-
 ```
+
+```brew install graphviz
+~/go/bin/pprof -http=:8080 css-host-183_3244036.1745803131531804330.pt.trace.pb```
+
+
+
+`go tool pprof css-host-183_3244036.1745803131531804330.pt.trace.pb`
+
+top -cum
+```
+Showing nodes accounting for 5122.12ms, 37.99% of 13482.98ms total
+Dropped 1389 nodes (cum <= 67.41ms)
+Showing top 10 nodes out of 45
+      flat  flat%   sum%        cum   cum%
+  885.31ms  6.57%  6.57%   885.31ms  6.57%  threading.py(1002): _bootstrap
+  885.31ms  6.57% 13.13%   885.31ms  6.57%  threading.py(1045): _bootstrap_inner
+  590.19ms  4.38% 17.51%   590.19ms  4.38%  tqdm/_monitor.py(60): run
+  590.18ms  4.38% 21.89%   590.18ms  4.38%  threading.py(629): wait
+  590.18ms  4.38% 26.26%   590.18ms  4.38%  threading.py(331): wait
+  400.42ms  2.97% 29.23%   400.42ms  2.97%  torch/utils/_contextlib.py(113): decorate_context
+  295.18ms  2.19% 31.42%   295.18ms  2.19%  PyTorch Profiler (0)
+  295.12ms  2.19% 33.61%   295.12ms  2.19%  threading.py(982): run
+  295.12ms  2.19% 35.80%   295.12ms  2.19%  /net/storage149/mnt/md0/zhuoran/fmwork-v22/fmwork-v2.2-0306/vllm/vllm/usage/usage_lib.py(162): _report_usage_worker
+  295.12ms  2.19% 37.99%   295.12ms  2.19%  /net/storage149/mnt/md0/zhuoran/fmwork-v22/fmwork-v2.2-0306/vllm/vllm/usage/usage_lib.py(182): _report_usage_once
+```
+
+
+`go tool pprof -http=:6060 css-host-183_3244036.1745803131531804330.pt.trace.pb`
+
+
+try with tensorboard
+```pip install torch_tb_profiler
+tensorboard --logdir=./trace```
