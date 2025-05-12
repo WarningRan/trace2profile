@@ -1,19 +1,27 @@
-```conda create -n trace2profile python=3.10 cmake
+```
+conda create -n trace2profile python=3.10 cmake
 python3.9 -m pip install --upgrade pip
 conda activate trace2profile
 protoc --python_out=. profile.proto
 python3 -m pip install --upgrade protobuf
-pip install -r requirements.txt```
+pip install -r requirements.txt
+```
 
 to download profile.proto 
+
 `curl -O https://raw.githubusercontent.com/google/pprof/master/proto/profile.proto`
+
 to generate profile_pb2
+
 `protoc --python_out=. profile.proto`
+
 To convert trace 2 pprof
+
 `python3 trace2profile.py css-host-183_3244036.1745803131531804330.pt.trace.json css-host-183_3244036.1745803131531804330.pt.trace.pb
 `
 
-```which pprof
+```
+which pprof
 brew install pprof
 brew install --cask approf
 
@@ -75,8 +83,10 @@ Dropped 1389 nodes (cum <= 0.07s)
      0.07s  0.51% 92.25%      0.07s  0.51%  /net/storage149/mnt/md0/zhuoran/fmwork-v22/fmwork-v2.2-0306/vllm/vllm/model_executor/models/granite.py(230): forward
 ```
 
-```brew install graphviz
-~/go/bin/pprof -http=:8080 css-host-183_3244036.1745803131531804330.pt.trace.pb```
+```
+brew install graphviz
+~/go/bin/pprof -http=:8080 css-host-183_3244036.1745803131531804330.pt.trace.pb
+```
 
 
 
@@ -104,6 +114,16 @@ Showing top 10 nodes out of 45
 `go tool pprof -http=:6060 css-host-183_3244036.1745803131531804330.pt.trace.pb`
 
 
-try with tensorboard
-```pip install torch_tb_profiler
-tensorboard --logdir=./trace```
+## try with tensorboard
+*Note*: need to add one line to `with torch.profiler.profile`
+```
+experimental_config=torch._C._profiler._ExperimentalConfig(verbose=True)
+```
+
+```
+pip install torch_tb_profiler
+tensorboard --logdir=./trace
+# for server
+tensorboard --logdir trace/test --bind_all
+tensorboard --logdir trace/test --host=localhost --port=6006
+```
